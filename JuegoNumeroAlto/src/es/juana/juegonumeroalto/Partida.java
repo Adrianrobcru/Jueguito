@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -76,15 +77,24 @@ public class Partida {
 		
 	}
 
-	private void iniciarJuego() throws IOException {
+	private void iniciarJuego() throws IOException, SQLException {
+		
 		Scanner scOpcion= new Scanner(System.in);
+		
+		
 		System.out.println("Elige tu personaje");
 		System.out.println("1) Homer");
 		System.out.println("2) Sherk");
 		System.out.println("3) Bender");
 		System.out.println("3) Rick");
+		
+		
 		int op=scOpcion.nextInt();
+		
+		
 		String per = null;
+		
+		
 		switch (op) {
 		case 1:
 			per="Homer";
@@ -99,39 +109,84 @@ public class Partida {
 			per="Rick";
 			break;
 		}
+		
+		
 		int intentos=0;
+		
+		
 		Random r=new Random();
-		int numeroAcertar=13;
-		for (intentos = 0; intentos <= 10; intentos++) {
+		int numeroAcertar=r.nextInt();
+		
+		
+		System.out.println("Empieza el juego");
+		 long startTime = System.currentTimeMillis();
+		
+		for (intentos = 0; intentos <= 5; ++intentos) {
 			System.out.println("Dime el numero para adivinar");
 			Scanner scNum=new Scanner(System.in);
 			int numPersona=scNum.nextInt();
 			
 			
-			
-			if (numeroAcertar==numeroAcertar) {
-			
-				FileReader fr=new FileReader("C:\\Users\\alumno\\Desktop\\Juegito\\"+per+"\\"+per+"Ganador.txt");
-				BufferedReader br= new BufferedReader(fr);
-				
-				String texto="";
-				String figura="";
-				while ((texto=br.readLine())!= null) {
-					figura+=texto;
-					figura+="\n";
-				}
-				System.out.println(figura);
-				String str= br.readLine();
-			}
 			if (numeroAcertar==numPersona) {
-				File fMa=new File("C:\\Users\\alumno\\Desktop\\Juegito\\"+per+"\\"+per+"Mayor.txt");
+			
+				System.out.println(crearFigura(per, "Ganador"));
+				  
+				break;
 			}
-			if (numeroAcertar==numPersona) {
-				File fMe=new File("C:\\Users\\alumno\\Desktop\\Juegito\\"+per+"\\"+per+"Menor.txt");
+			if (numeroAcertar>numPersona) {
+				System.out.println(crearFigura(per, "Mayor"));
+			}
+			if (numeroAcertar<numPersona) {
+				System.out.println(crearFigura(per, "Menor"));
 			}
 			
 		}
+		long finishTime = System.currentTimeMillis();
+		if(intentos==5) {
+			System.out.println(crearFigura(per, "Perdedor"));
+		}
+		
+		System.out.println("Registrate en nuestra base de datos");
+		Jugador j=crearUsuarioParaGuardar();
+		int tiempoTotalSeg=(int) ((finishTime-startTime)/1000);
+		MetodosDB mDB=new MetodosDB();
+		mDB.añadirUsurio(j.getUsuario(), j.getContraseña(), j.getNombre());
+		mDB.añadirPartida(tiempoTotalSeg, j, intentos);
 		
 	}
-	
+	private Jugador crearUsuarioParaGuardar() {
+		Scanner sc= new Scanner(System.in);
+		
+		System.out.println("Usuario");
+		String usuario=sc.nextLine();
+		
+		sc.next();
+		
+		System.out.println("Contraseña");
+		String contraseña=sc.nextLine();
+		sc.next();
+		
+		System.out.println("Nombre Completo");
+		String nombreCompleto=sc.nextLine();
+		
+		Jugador j=new Jugador(usuario, contraseña, nombreCompleto);
+		
+		return j;
+	}
+
+
+	private String crearFigura(String personaje,String posicion) throws IOException {
+		FileReader fr=new FileReader("C:\\Users\\alumno\\Desktop\\Juegito\\"+personaje+"\\"+personaje+posicion+".txt");
+		BufferedReader br= new BufferedReader(fr);
+		
+		String texto="";
+		String figura="";
+		while ((texto=br.readLine())!= null) {
+			figura+=texto;
+			figura+="\n";
+		}
+		return figura;
+		
+		
+	}
 }
